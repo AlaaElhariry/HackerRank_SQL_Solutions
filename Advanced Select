@@ -1,0 +1,59 @@
+/*Type of Triangle*/
+SELECT CASE
+WHEN A + B <= C OR A + C <= B OR B + C <= A THEN 'Not A Triangle'
+WHEN A = B AND B = C THEN 'Equilateral'
+WHEN A = B OR B = C OR A = C THEN 'Isosceles'
+ELSE 'Scalene'
+END
+FROM TRIANGLES;
+------------------------------------------------
+/*The PADS*/
+SELECT Name + '(' + LEFT(Occupation, 1) + ')'
+FROM OCCUPATIONS
+ORDER BY Name;
+
+SELECT 'There are a total of ' + CAST(COUNT(Occupation) AS VARCHAR) + ' ' + LOWER(Occupation) + 's.'
+FROM OCCUPATIONS
+GROUP BY Occupation
+ORDER BY COUNT(Occupation) ASC, Occupation ASC;
+------------------------------------------------
+/*Occupations*/
+
+SELECT [Doctor], [Professor], [Singer], [Actor]
+FROM (
+    SELECT 
+        Name, 
+        Occupation, 
+        ROW_NUMBER() OVER (PARTITION BY Occupation ORDER BY Name) AS RowNum
+    FROM OCCUPATIONS
+) AS SourceTable
+PIVOT (
+    MAX(Name)
+    FOR Occupation IN ([Doctor], [Professor], [Singer], [Actor])
+) AS PivotTable;
+-----------------------------------------------
+/*Binary Tree Nodes*/
+SELECT N,
+    CASE
+        WHEN P IS NULL THEN 'Root'
+        WHEN N IN (SELECT P FROM BST WHERE P IS NOT NULL) THEN 'Inner'
+        ELSE 'Leaf'
+    END
+FROM BST
+ORDER BY N;
+------------------------------------------------
+/*New Companies*/
+SELECT 
+    C.company_code, 
+    C.founder, 
+    COUNT(DISTINCT LM.lead_manager_code), 
+    COUNT(DISTINCT SM.senior_manager_code), 
+    COUNT(DISTINCT M.manager_code), 
+    COUNT(DISTINCT E.employee_code)
+FROM Company C
+JOIN Lead_Manager LM ON C.company_code = LM.company_code
+JOIN Senior_Manager SM ON LM.lead_manager_code = SM.lead_manager_code
+JOIN Manager M ON SM.senior_manager_code = M.senior_manager_code
+JOIN Employee E ON M.manager_code = E.manager_code
+GROUP BY C.company_code, C.founder
+ORDER BY C.company_code;

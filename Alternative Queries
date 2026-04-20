@@ -1,0 +1,49 @@
+/*Draw The Triangle 1*/
+WITH cte AS (
+    SELECT 20 AS n
+    UNION ALL
+    SELECT n - 1
+    FROM cte
+    WHERE n > 1
+)
+SELECT REPLICATE('* ', n)
+FROM cte
+ORDER BY n DESC
+OPTION (MAXRECURSION 100);
+----------------------------------------------------------------------------
+/*Draw The Triangle 2*/
+WITH cte AS (
+    SELECT 1 AS n
+    UNION ALL
+    SELECT n + 1
+    FROM cte
+    WHERE n < 20
+)
+SELECT REPLICATE('* ', n)
+FROM cte
+ORDER BY n
+OPTION (MAXRECURSION 100);
+----------------------------------------------------------------------------
+/*Print Prime Numbers*/
+
+WITH Numbers AS (
+    SELECT 2 AS Num
+    UNION ALL
+    SELECT Num + 1
+    FROM Numbers
+    WHERE Num < 1000
+),
+Primes AS (
+    SELECT n1.Num
+    FROM Numbers n1
+    WHERE NOT EXISTS (
+        SELECT 1 
+        FROM Numbers n2 
+        WHERE n2.Num <= SQRT(n1.Num) 
+          AND n1.Num % n2.Num = 0 
+          AND n1.Num <> n2.Num
+    )
+)
+SELECT STRING_AGG(Num, '&') WITHIN GROUP (ORDER BY Num)
+FROM Primes
+OPTION (MAXRECURSION 1000);

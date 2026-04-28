@@ -24,7 +24,7 @@ GROUP BY COUNTRY.Continent;
 ----------------------------------------------
 /*The Report*/
 
-SELECT 
+SELECT
     CASE 
         WHEN G.Grade < 8 THEN 'NULL'
         ELSE S.Name
@@ -34,14 +34,10 @@ SELECT
 FROM Students S
 JOIN Grades G
     ON S.Marks BETWEEN G.Min_Mark AND G.Max_Mark
-ORDER BY 
+ORDER BY
     G.Grade DESC,
-    CASE 
-        WHEN G.Grade >= 8 THEN S.Name
-    END ASC,
-    CASE 
-        WHEN G.Grade < 8 THEN S.Marks
-    END ASC;
+    S.Name,
+    S.Marks;
 ----------------------------------------------
 /*Top Competitors*/
 

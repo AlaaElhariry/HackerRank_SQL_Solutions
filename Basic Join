@@ -120,26 +120,34 @@ ORDER BY
 ----------------------------------------------
 /*Contest Leaderboard*/
 
-SELECT 
-    H.hacker_id,
-    H.name,
-    SUM(MaxScores.max_score) AS total_score
-FROM Hackers H
-JOIN (
+WITH MaxScores AS (
     SELECT 
         hacker_id,
         challenge_id,
         MAX(score) AS max_score
     FROM Submissions
-    GROUP BY hacker_id, challenge_id
-) AS MaxScores
-    ON H.hacker_id = MaxScores.hacker_id
-GROUP BY H.hacker_id, H.name
-HAVING SUM(MaxScores.max_score) > 0
+    GROUP BY 
+        hacker_id,
+        challenge_id
+),
+
+TotalScores AS (
+    SELECT 
+        hacker_id,
+        SUM(max_score) AS total_score
+    FROM MaxScores
+    GROUP BY 
+        hacker_id
+)
+
+SELECT 
+    H.hacker_id,
+    H.name,
+    T.total_score
+FROM Hackers H
+JOIN TotalScores T
+    ON H.hacker_id = T.hacker_id
+WHERE T.total_score > 0
 ORDER BY 
-    total_score DESC,
-    H.hacker_id ASC;  
-
-
-
-
+    T.total_score DESC,
+    H.hacker_id ASC;

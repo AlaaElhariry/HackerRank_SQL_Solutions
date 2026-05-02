@@ -44,40 +44,60 @@ ORDER BY f1.x;
 ------------------------------------------------------------------------------------
 /*Interviews*/
 
-WITH AggregatedViews AS (
-    SELECT challenge_id, 
-           SUM(total_views) as sum_tv, 
-           SUM(total_unique_views) as sum_tuv
+WITH aggregated_views AS (
+    SELECT 
+        challenge_id,
+        SUM(total_views) AS sum_tv,
+        SUM(total_unique_views) AS sum_tuv
     FROM View_Stats
     GROUP BY challenge_id
 ),
-AggregatedSubmissions AS (
-    SELECT challenge_id, 
-           SUM(total_submissions) as sum_ts, 
-           SUM(total_accepted_submissions) as sum_tas
+aggregated_submission_stats AS (
+    SELECT  
+        challenge_id,
+        SUM(total_submissions) AS sum_ts,
+        SUM(total_accepted_submissions) AS sum_tas
     FROM Submission_Stats
     GROUP BY challenge_id
 )
-SELECT 
-    con.contest_id, 
-    con.hacker_id, 
-    con.name, 
-    SUM(ISNULL(s_stats.sum_ts, 0)), 
-    SUM(ISNULL(s_stats.sum_tas, 0)), 
-    SUM(ISNULL(v_stats.sum_tv, 0)), 
-    SUM(ISNULL(v_stats.sum_tuv, 0))
+
+SELECT
+    con.contest_id,
+    con.hacker_id,
+    con.name,
+
+    SUM(ISNULL(ass.sum_ts, 0))  AS total_submissions,
+    SUM(ISNULL(ass.sum_tas, 0)) AS total_accepted_submissions,
+    SUM(ISNULL(av.sum_tv, 0))   AS total_views,
+    SUM(ISNULL(av.sum_tuv, 0))  AS total_unique_views
+
 FROM Contests con
-JOIN Colleges col ON con.contest_id = col.contest_id
-JOIN Challenges cha ON col.college_id = cha.college_id
-/* Using v_stats and s_stats instead of reserved keywords */
-LEFT JOIN AggregatedViews v_stats ON cha.challenge_id = v_stats.challenge_id
-LEFT JOIN AggregatedSubmissions s_stats ON cha.challenge_id = s_stats.challenge_id
-GROUP BY con.contest_id, con.hacker_id, con.name
-HAVING (SUM(ISNULL(s_stats.sum_ts, 0)) + 
-        SUM(ISNULL(s_stats.sum_tas, 0)) + 
-        SUM(ISNULL(v_stats.sum_tv, 0)) + 
-        SUM(ISNULL(v_stats.sum_tuv, 0))) > 0
-ORDER BY con.contest_id;
+
+JOIN Colleges col 
+    ON con.contest_id = col.contest_id
+
+JOIN Challenges cha 
+    ON col.college_id = cha.college_id
+
+LEFT JOIN aggregated_views av 
+    ON av.challenge_id = cha.challenge_id
+
+LEFT JOIN aggregated_submission_stats ass 
+    ON ass.challenge_id = cha.challenge_id
+
+GROUP BY 
+    con.contest_id,
+    con.hacker_id,
+    con.name
+
+HAVING 
+    SUM(ISNULL(av.sum_tv, 0)) +
+    SUM(ISNULL(av.sum_tuv, 0)) +
+    SUM(ISNULL(ass.sum_ts, 0)) +
+    SUM(ISNULL(ass.sum_tas, 0)) > 0
+
+ORDER BY 
+    con.contest_id;
 
 ------------------------------------------------------------------------------------
 /*15 Days of Learning SQL*/

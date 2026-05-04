@@ -37,13 +37,14 @@ Primes AS (
     SELECT n1.Num
     FROM Numbers n1
     WHERE NOT EXISTS (
-        SELECT 1 
-        FROM Numbers n2 
-        WHERE n2.Num <= SQRT(n1.Num) 
-          AND n1.Num % n2.Num = 0 
-          AND n1.Num <> n2.Num
+        SELECT 1
+        FROM Numbers n2
+        WHERE n2.Num < n1.Num
+          AND n2.Num > 1
+          AND n1.Num % n2.Num = 0
     )
 )
-SELECT STRING_AGG(Num, '&') WITHIN GROUP (ORDER BY Num)
+SELECT STRING_AGG(CAST(Num AS VARCHAR), '&') 
+       WITHIN GROUP (ORDER BY Num)
 FROM Primes
 OPTION (MAXRECURSION 1000);
